@@ -1,0 +1,93 @@
+import React, { Component } from "react";
+import AuthService from "../services/auth.service";
+import ItemReqService from "../services/academic-item-req.service";
+
+
+import { Link } from 'react-router-dom';
+
+export default class Orders extends Component {
+    constructor(props) {
+        super(props);
+        this.getRequests = this.getRequests.bind(this);
+       // this.renderTablePending = this.renderTablePending.bind(this);
+        this.renderTableIssued = this.renderTableIssued.bind(this);
+
+        this.state = {
+            staffReq: [],
+            currentUser: "",
+            pending: 0
+        };
+    }
+
+    componentDidMount() {
+        this.setState({
+            currentUser: AuthService.getCurrentUser().username
+        });
+        this.getRequests();
+    }
+
+    getRequests() {
+        ItemReqService.getall()
+            .then((response) => {
+                this.setState({
+                    staffReq: response.data,
+                });
+                console.log(this.state.staffReq);
+            })
+            .catch((e) => {
+                console.log(e);
+            });
+    }
+
+
+
+    renderTableIssued() {
+        return this.state.staffReq.map((request, index) => {
+            if (request.isIssued) {
+                const { requestId, academicId, item_no, quantity, reason } = request //destructuring
+                return (
+                    <tr key={requestId}>
+                        <td>{academicId}</td>
+                        <td>{item_no}</td>
+                        <td>{quantity}</td>
+                        <td>{reason}</td>
+                    </tr >
+                )
+            }
+            else { return null; }
+        })
+    }
+
+    render() {
+        return (
+            <div className="container">
+                <h4>Orders</h4>
+                <hr />
+                {/*<ul className="nav nav-pills mb-3" id="myTab" role="tablist">
+                  
+                    <li className="nav-item">
+                        <a className="nav-link active" id="reviewed-tab" data-toggle="tab" href="#reviewed" role="tab" aria-controls="reviewed" aria-selected="true">Orders</a>
+                    </li>
+        </ul>*/}
+                <div className="tab-content" id="myTabContent">
+                    
+                    <div className="tab-pane fade show active" id="reviewed" role="tabpanel" aria-labelledby="reviewed-tab">
+                        <table className="table">
+                            <thead className="thead-light">
+                                <tr>
+                                    <th scope="col">Name</th>
+                                    <th scope="col">Item</th>
+                                    <th scope="col">Quantity</th>
+                                    <th scope="col">Reason</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {this.renderTableIssued()}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+}
